@@ -18,7 +18,7 @@ namespace Core.Domain
                 sqlServerOptionsAction: sqlOptions =>
                 {
                     sqlOptions.MigrationsAssembly(typeof(IPNContext).GetTypeInfo().Assembly.GetName().Name);
-                    sqlOptions.MigrationsHistoryTable("__GospelMigrationsHistory", nameof(Schemas.IPN));                    
+                    sqlOptions.MigrationsHistoryTable("__IPNMigrationsHistory", nameof(Schemas.IPN));                    
                 }));
 
             services.AddTransient<IDateTimeService, DateTimeService>();
