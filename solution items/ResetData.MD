@@ -55,7 +55,7 @@ DROP TABLE [HangFire].[AggregatedCounter]
 
 
 ## Works only for contained databases
-CREATE USER [HangFire] WITH PASSWORD = 'B795aa0f-aa21-457e-8b27-3567b46a23Ef'
+CREATE USER [HangFire] WITH PASSWORD = '-457e-8b27-3567b46a23Ef'
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE [name] = 'HangFire') EXEC ('CREATE SCHEMA [HangFire]')
