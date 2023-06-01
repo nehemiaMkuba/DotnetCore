@@ -12,10 +12,10 @@ namespace Core.Management.Repositories {
 
     public class RedisRepository : IRedisRepository
     {
-        private readonly IDatabase database;
+        private readonly IDatabase _database;
         public RedisRepository(IDatabase database)
         {
-            this.database = database;
+            _database = database;
         }
 
         public static string ComposeKey(string entityType, string entityId) => $"{entityType}:{entityId}".ToUpper();
@@ -33,16 +33,16 @@ namespace Core.Management.Repositories {
             {
                 RedisValue redisValue = RedisValue.Unbox(entry.Value);
 
-                if (redisValue.IsNullOrEmpty && await database.HashExistsAsync(key, entry.Key))
+                if (redisValue.IsNullOrEmpty && await _database.HashExistsAsync(key, entry.Key))
                 {
-                    await database.HashDeleteAsync(key, new RedisValue[] { entry.Key }).ConfigureAwait(false);
+                    await _database.HashDeleteAsync(key, new RedisValue[] { entry.Key }).ConfigureAwait(false);
                     continue;
                 }
 
                 actionEntry.Add(new HashEntry(entry.Key, redisValue));
             }
 
-            await database.HashSetAsync(key, actionEntry.ToArray()).ConfigureAwait(false);
+            await _database.HashSetAsync(key, actionEntry.ToArray()).ConfigureAwait(false);
 
             return true;
 
@@ -53,21 +53,21 @@ namespace Core.Management.Repositories {
             string key = ComposeKey(entityType, entityId);
 
             if (hashFields is null || hashFields.Count < 1)
-                return await database.KeyDeleteAsync(key);
+                return await _database.KeyDeleteAsync(key);
 
-            return await database.HashDeleteAsync(key, hashFields.Select(x => new RedisValue(x)).ToArray()) > 0;
+            return await _database.HashDeleteAsync(key, hashFields.Select(x => new RedisValue(x)).ToArray()) > 0;
         }
 
         public string GetHashField(string entityType, string entityId, string field)
         {
             string key = ComposeKey(entityType, entityId);
-            return database.HashGet(key, field).ToString();
+            return _database.HashGet(key, field).ToString();
         }
 
         public HashEntry[] GetHashRecord(string entityType, string entityId)
         {
             string key = ComposeKey(entityType, entityId);
-            return database.HashGetAll(key);
+            return _database.HashGetAll(key);
         }
 
         #endregion
@@ -78,22 +78,22 @@ namespace Core.Management.Repositories {
         {
             foreach (KeyValuePair<string, TValue[]> set in sets)
             {
-                await database.KeyDeleteAsync(set.Key).ConfigureAwait(false);
+                await _database.KeyDeleteAsync(set.Key).ConfigureAwait(false);
 
-                await database.SetAddAsync(set.Key, set.Value.Select(x => RedisValue.Unbox(x)).ToArray()).ConfigureAwait(false);
+                await _database.SetAddAsync(set.Key, set.Value.Select(x => RedisValue.Unbox(x)).ToArray()).ConfigureAwait(false);
             }
         }
 
         public async Task<string[]> GetSetMembers(string key)
         {
-            RedisValue[] setMembers = await database.SetMembersAsync(key).ConfigureAwait(false);
+            RedisValue[] setMembers = await _database.SetMembersAsync(key).ConfigureAwait(false);
 
             return setMembers.Select(x => x.ToString()).ToArray();
         }
 
         public async Task<string[]> GetRandomSetMembers(string key, int count)
         {
-            RedisValue[] setMembers = await database.SetRandomMembersAsync(key, count).ConfigureAwait(false);
+            RedisValue[] setMembers = await _database.SetRandomMembersAsync(key, count).ConfigureAwait(false);
 
             return setMembers.Select(x => x.ToString()).ToArray();
         }
@@ -110,10 +110,10 @@ namespace Core.Management.Repositories {
         /// <returns>Total number of inserted elements</returns>
         public async Task<long> ListLeftPush(string key, string[] values)
         {
-            await database.KeyDeleteAsync(key).ConfigureAwait(false);
+            await _database.KeyDeleteAsync(key).ConfigureAwait(false);
 
             //implement queue in redis - pushing left popping right
-            long insertedRecords = await database.ListLeftPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
+            long insertedRecords = await _database.ListLeftPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
 
             return insertedRecords;
         }
@@ -126,12 +126,12 @@ namespace Core.Management.Repositories {
         /// <returns>Total number of inserted elements</returns>
         public async Task<long> ListLeftPush(string key, string[] values, TimeSpan expiry)
         {
-            await database.KeyDeleteAsync(key).ConfigureAwait(false);
+            await _database.KeyDeleteAsync(key).ConfigureAwait(false);
 
             //implement queue in redis - pushing left popping right
-            long insertedRecords = await database.ListLeftPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
+            long insertedRecords = await _database.ListLeftPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
 
-            await database.KeyExpireAsync(key, expiry).ConfigureAwait(false);
+            await _database.KeyExpireAsync(key, expiry).ConfigureAwait(false);
 
             return insertedRecords;
         }
@@ -144,10 +144,10 @@ namespace Core.Management.Repositories {
         /// <returns>Total number of inserted elements</returns>
         public async Task<long> ListRightPush(string key, string[] values)
         {
-            await database.KeyDeleteAsync(key).ConfigureAwait(false);
+            await _database.KeyDeleteAsync(key).ConfigureAwait(false);
 
             //implement queue in redis - pushing left popping right
-            long insertedRecords = await database.ListRightPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
+            long insertedRecords = await _database.ListRightPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
 
             return insertedRecords;
         }
@@ -160,12 +160,12 @@ namespace Core.Management.Repositories {
         /// <returns>Total number of inserted elements</returns>
         public async Task<long> ListRightPush(string key, string[] values, TimeSpan expiry)
         {
-            await database.KeyDeleteAsync(key).ConfigureAwait(false);
+            await _database.KeyDeleteAsync(key).ConfigureAwait(false);
 
             //implement queue in redis - pushing left popping right
-            long insertedRecords = await database.ListRightPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
+            long insertedRecords = await _database.ListRightPushAsync(key, values.Select(x => (RedisValue)x).ToArray()).ConfigureAwait(false);
 
-            await database.KeyExpireAsync(key, expiry).ConfigureAwait(false);
+            await _database.KeyExpireAsync(key, expiry).ConfigureAwait(false);
 
             return insertedRecords;
         }
@@ -177,7 +177,7 @@ namespace Core.Management.Repositories {
         /// <returns>A single element popped from the tail of list</returns>
         public async Task<string> ListRightPopLeftPush(string key)
         {
-            RedisValue redisValue = await database.ListRightPopLeftPushAsync(key, key);
+            RedisValue redisValue = await _database.ListRightPopLeftPushAsync(key, key);
             return redisValue.ToString();
         }
 
@@ -188,7 +188,7 @@ namespace Core.Management.Repositories {
         /// <returns>A single(first) element popped from the head of list</returns>
         public async Task<string> ListLeftPop(string key)
         {
-            RedisValue redisValue = await database.ListLeftPopAsync(key);
+            RedisValue redisValue = await _database.ListLeftPopAsync(key);
             return redisValue.ToString();
         }
 
@@ -199,7 +199,7 @@ namespace Core.Management.Repositories {
         /// <returns>A single(last) element popped from the tail of list</returns>
         public async Task<string> ListRightPop(string key)
         {
-            RedisValue redisValue = await database.ListRightPopAsync(key);
+            RedisValue redisValue = await _database.ListRightPopAsync(key);
             return redisValue.ToString();
         }
 
@@ -208,14 +208,14 @@ namespace Core.Management.Repositories {
         /// </summary>
         /// <param name="key"></param>
         /// <returns>Size of a list using specified key</returns>
-        public async Task<int> ListLength(string key) => Convert.ToInt32(await database.ListLengthAsync(key));
+        public async Task<int> ListLength(string key) => Convert.ToInt32(await _database.ListLengthAsync(key));
 
         /// <summary>
         /// Deletes redis keys from database or ignored if does not exist
         /// </summary>
         /// <param name="key"></param>
         /// <returns>Number of deleted keys</returns>
-        public async Task<long> DeleteKeys(string[] keys) => await database.KeyDeleteAsync(keys.Select(k => (RedisKey)k).ToArray()).ConfigureAwait(false);
+        public async Task<long> DeleteKeys(string[] keys) => await _database.KeyDeleteAsync(keys.Select(k => (RedisKey)k).ToArray()).ConfigureAwait(false);
 
         /// <summary>
         /// Sets a TTL on a key. Associated key will delete automatically if exists
@@ -223,7 +223,7 @@ namespace Core.Management.Repositories {
         /// <param name="key"></param>
         /// <param name="expiry"></param>
         /// <returns>true if set, false if not or key does not exist</returns>
-        public async Task<bool> SetKeyExpiry(string key, TimeSpan expiry) => await database.KeyExpireAsync(key, expiry).ConfigureAwait(false);
+        public async Task<bool> SetKeyExpiry(string key, TimeSpan expiry) => await _database.KeyExpireAsync(key, expiry).ConfigureAwait(false);
 
         #endregion
 
@@ -231,17 +231,17 @@ namespace Core.Management.Repositories {
 
         public async Task<double> InsertSortedSet(string key, string member, int score)
         {
-            return await database.SortedSetIncrementAsync(key, member, score).ConfigureAwait(false);
+            return await _database.SortedSetIncrementAsync(key, member, score).ConfigureAwait(false);
         }
 
         public async Task<long?> SortedSetRankAsync(string key, string member, Order order = Order.Ascending)
         {
-            return await database.SortedSetRankAsync(key, member, order).ConfigureAwait(false);
+            return await _database.SortedSetRankAsync(key, member, order).ConfigureAwait(false);
         }
 
         public async Task<SortedSetEntry[]> SortedSetRangeByScoreWithScoresAsync(string key, Order order = Order.Ascending, long skip = 0, long take = 10)
         {
-            return await database.SortedSetRangeByScoreWithScoresAsync(key, order: Order.Descending, skip: skip, take: take).ConfigureAwait(false);
+            return await _database.SortedSetRangeByScoreWithScoresAsync(key, order: Order.Descending, skip: skip, take: take).ConfigureAwait(false);
         }
         #endregion
 

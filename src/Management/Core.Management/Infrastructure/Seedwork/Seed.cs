@@ -14,17 +14,17 @@ namespace Core.Management.Infrastructure.Seedwork
 {
     public class Seed : ISeed
     {
-        private readonly ILogger<Seed> logger;
-        private readonly IPNContext context;
-        private readonly IConnection connection;        
-        private readonly ISecurityRepository securityRepository;        
+        private readonly ILogger<Seed> _logger;
+        private readonly IPNContext _context;
+        private readonly IConnection _connection;        
+        private readonly ISecurityRepository _securityRepository;        
 
         public Seed(IPNContext context, IConnection connection, ILogger<Seed> logger, ISecurityRepository securityRepository)
         {
-            this.logger = logger;
-            this.context = context;
-            this.connection = connection;
-            this.securityRepository = securityRepository;
+            _logger = logger;
+            _context = context;
+            _connection = connection;
+            _securityRepository = securityRepository;
         }
 
         public async Task SeedDefaults()
@@ -41,7 +41,7 @@ namespace Core.Management.Infrastructure.Seedwork
  
         public void UpdateHiLoSequences()
         {
-            using SqlConnection sqlConnection = new SqlConnection(connection.ConnectionString);
+            using SqlConnection sqlConnection = new SqlConnection(_connection.ConnectionString);
 
             int max = sqlConnection.ExecuteScalar<int?>("SELECT MAX(SettingId) FROM IPN.Settings") ?? 0;
             sqlConnection.Execute($"ALTER SEQUENCE [IPN].[Setting_HiLo] RESTART WITH {max += 1} INCREMENT BY 1");

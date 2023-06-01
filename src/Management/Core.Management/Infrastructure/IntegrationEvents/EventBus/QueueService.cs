@@ -15,14 +15,14 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventBus
 {
     public class QueueService : IQueueService
     {
-        private readonly EventSetting setting;
-        private readonly AmazonSQSClient sqsClient;
+        private readonly EventSetting _setting;
+        private readonly AmazonSQSClient _sqsClient;
         private readonly ILogger<QueueService> logger;
 
         //public QueueService(ILogger<QueueService> logger, IOptions<EventSetting> options, AmazonSQSClient sqsClient)
         //{
         //    this.logger = logger;
-        //    setting = options.Value;
+        //    _setting = options.Value;
         //    this.sqsClient = sqsClient;
         //}
 
@@ -30,7 +30,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventBus
         {
             try
             {
-                SendMessageResponse response = await sqsClient.SendMessageAsync(setting.QueueUrl,
+                SendMessageResponse response = await _sqsClient.SendMessageAsync(_setting.QueueUrl,
                     JsonSerializer.Serialize(payload, options: new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } })).ConfigureAwait(false);
 
                 return (response.HttpStatusCode == HttpStatusCode.OK, response.MessageId);

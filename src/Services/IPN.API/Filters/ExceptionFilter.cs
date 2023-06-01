@@ -11,18 +11,18 @@ namespace IPN.API.Filters
 {
     public class ExceptionFilter : IExceptionFilter
     {
-        private readonly IWebHostEnvironment env;
-        private readonly ILogger<ExceptionFilter> logger;
+        private readonly IWebHostEnvironment _env;
+        private readonly ILogger<ExceptionFilter> _logger;
 
         public ExceptionFilter(IWebHostEnvironment env, ILogger<ExceptionFilter> logger)
         {
-            this.env = env;
-            this.logger = logger;
+            _env = env;
+            _logger = logger;
         }
 
         public void OnException(ExceptionContext context)
         {
-            logger.LogError(new EventId(context.Exception.HResult), context.Exception, context.Exception.Message);
+            _logger.LogError(new EventId(context.Exception.HResult), context.Exception, context.Exception.Message);
    
             if (context.Exception.GetType() == typeof(GenericException))
             {
@@ -39,7 +39,7 @@ namespace IPN.API.Filters
             else
             {
                 string genericMessage = "Sorry, your request could not be competed. If problem persists, please contact us for assistance";
-                if (env.IsDevelopment())
+                if (_env.IsDevelopment())
                 {
                     genericMessage = $"{context.Exception.Message} | {context.Exception.StackTrace}";
                 }

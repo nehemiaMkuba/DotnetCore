@@ -24,32 +24,32 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
 {
     public class NotificationHandler : INotificationHandler
     {
-        private readonly HttpClient client;
-        private readonly IConnection connection;
-        private readonly NotificationSetting setting;
-        private readonly IIdGenerator<long> idGenerator;
-        private readonly IDateTimeService dateTimeService;
-        private readonly ILogger<NotificationHandler> logger;
+        private readonly HttpClient _client;
+        private readonly IConnection _connection;
+        private readonly NotificationSetting _setting;
+        private readonly IIdGenerator<long> _idGenerator;
+        private readonly IDateTimeService _dateTimeService;
+        private readonly ILogger<NotificationHandler> _logger;
 
         public NotificationHandler(IConnection connection, IDateTimeService dateTimeService, IOptions<NotificationSetting> setting, IIdGenerator<long> idGenerator, ILogger<NotificationHandler> logger, IHttpClientFactory httpClientFactory)
         {
-            this.logger = logger;
-            this.setting = setting.Value;
-            this.connection = connection;
-            this.idGenerator = idGenerator;
-            this.dateTimeService = dateTimeService;
-            client = httpClientFactory.CreateClient();
+            _logger = logger;
+            _setting = setting.Value;
+            _connection = connection;
+            _idGenerator = idGenerator;
+            _dateTimeService = dateTimeService;
+            _client = httpClientFactory.CreateClient();
         }
 
         public async Task Handle()
         {
-            using SqlConnection sqlConnection = new SqlConnection(connection.ConnectionString);
-            long bucketId = idGenerator.CreateId();
+            using SqlConnection sqlConnection = new SqlConnection(_connection.ConnectionString);
+            long bucketId = _idGenerator.CreateId();
 
             //Create processing bucket
             int allocatedBucketSize = await sqlConnection.ExecuteAsync(Queries.BATCH_UNPROCESSED_NOTIFICATIONS, new
             {
-                batchSize = setting.BatchSize,
+                batchSize = _setting.BatchSize,
                 bucketId = 0,
                 queuedStatusId = (int)NotificationStates.Queued,
                 processingStatusId = (int)NotificationStates.Processing,
@@ -62,7 +62,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
             List<Notification> notifications = (await sqlConnection.QueryAsync<Notification>(Queries.GET_BATCHED_NOTIFICATIONS, new { bucketId }).ConfigureAwait(false)).ToList();
             if (notifications.Count < 1)
             {
-                logger.LogWarning($"{nameof(NotificationHandler) } unable to fetch bucket {bucketId}");
+                _logger.LogWarning($"{nameof(NotificationHandler) } unable to fetch bucket {bucketId}");
                 return;
             }
 
@@ -82,13 +82,13 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
                             queueId = ExternalId,
                             bucketId = 0,
                             message = Message,
-                            modifiedAt = dateTimeService.Now,
+                            modifiedAt = _dateTimeService.Now,
                             notificationId = Id
                         }).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Error updating successfully queued notification {Id} : {ExternalId}");
+                        _logger.LogError(ex, $"Error updating successfully queued notification {Id} : {ExternalId}");
                     }
                 }
 
@@ -98,7 +98,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
             {
                 if (failedEvents.Count < 1) return;
 
-                logger.LogCritical($"Failed notifications for action - {JsonConvert.SerializeObject(failedEvents)}");
+                _logger.LogCritical($"Failed notifications for action - {JsonConvert.SerializeObject(failedEvents)}");
 
                 foreach ((long Id, string ExternalId, string Error) in failedEvents)
                 {
@@ -110,14 +110,14 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
                             numberOfSends = 1,
                             bucketId = 0,
                             error = Error,
-                            modifiedAt = dateTimeService.Now,
+                            modifiedAt = _dateTimeService.Now,
                             notificationId = Id
                         }).ConfigureAwait(false);
 
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Error updating failed and queued notification {Id} : {Error}");
+                        _logger.LogError(ex, $"Error updating failed and queued notification {Id} : {Error}");
                     }
                 }
             }
@@ -187,22 +187,22 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
                 {
                     phone = notification.Msisdn.ToString(),
                     message = notification.TextBody,
-                    senderID = setting.SenderId,
+                    senderID = _setting.SenderId,
                     priority = notification.Priority,
                     product = "ipn",
-                    notificationURL = setting.NotificationUrl,
+                    notificationURL = _setting.NotificationUrl,
                     externalId = notification.NotificationId.ToString()
                 });
 
                 HttpRequestMessage request = new HttpRequestMessage()
                 {
-                    RequestUri = new Uri(setting.Sms),
+                    RequestUri = new Uri(_setting.Sms),
                     Method = HttpMethod.Post,
                     Content = new StringContent(smsObject, Encoding.UTF8, "application/json")
                 };
-                request.Headers.Add("x-app-id", setting.Key);
+                request.Headers.Add("x-app-id", _setting.Key);
 
-                HttpResponseMessage responseMessage = await client.SendAsync(request);
+                HttpResponseMessage responseMessage = await _client.SendAsync(request);
                 reasonPhrase = $"SMS Notification Id: {notification.NotificationId}|{responseMessage?.ReasonPhrase}";
                 responseMessage.EnsureSuccessStatusCode();
 
@@ -213,7 +213,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, $"Exception while queueing SMS to gateway : {reasonPhrase}");
+                _logger?.LogError(ex, $"Exception while queueing SMS to gateway : {reasonPhrase}");
                 return (false, null, ex?.Message);
             }
         }
@@ -227,24 +227,24 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
                 {
                     to = notification.Email,
                     cc = notification.InCopyRecipients,
-                    from = setting.SenderMail,
+                    from = _setting.SenderMail,
                     message = notification.TextBody,
                     subject = notification.Subject,
                     priority = notification.Priority,
                     product = "ipn",
-                    notificationURL = setting.NotificationUrl,
+                    notificationURL = _setting.NotificationUrl,
                     externalId = notification.NotificationId.ToString()
                 });
 
                 HttpRequestMessage request = new HttpRequestMessage()
                 {
-                    RequestUri = new Uri(setting.PlainMail),
+                    RequestUri = new Uri(_setting.PlainMail),
                     Method = HttpMethod.Post,
                     Content = new StringContent(emailObject, Encoding.UTF8, "application/json")
                 };
-                request.Headers.Add("x-app-id", setting.Key);
+                request.Headers.Add("x-app-id", _setting.Key);
 
-                HttpResponseMessage responseMessage = await client.SendAsync(request);
+                HttpResponseMessage responseMessage = await _client.SendAsync(request);
                 reasonPhrase = $"Email Notification Id: {notification.NotificationId}|{responseMessage?.ReasonPhrase}";
                 responseMessage.EnsureSuccessStatusCode();
 
@@ -255,7 +255,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Exception while queueing Email to gateway : {reasonPhrase}");
+                _logger.LogError(ex, $"Exception while queueing Email to gateway : {reasonPhrase}");
                 return (false, null, ex?.Message);
             }
         }       

@@ -11,11 +11,11 @@ namespace Core.Management.Repositories
 
     public class ConfigurationRepository : IConfigurationRepository
     {
-        private readonly IPNContext context;
+        private readonly IPNContext _context;
 
         public ConfigurationRepository(IPNContext context)
         {
-            this.context = context;
+            _context = context;
         }
 
         private string instanceName;
@@ -23,23 +23,23 @@ namespace Core.Management.Repositories
         {
             get
             {
-                instanceName = !string.IsNullOrEmpty(instanceName) ? instanceName : context.Settings.FirstOrDefault(s => s.Key == nameof(InstanceName)).Value;
+                instanceName = !string.IsNullOrEmpty(instanceName) ? instanceName : _context.Settings.FirstOrDefault(s => s.Key == nameof(InstanceName)).Value;
                 return instanceName;
             }
             set
             {
                 instanceName = value;
-                Setting setting = context.Settings.FirstOrDefault(s => s.Key == nameof(InstanceName));
+                Setting setting = _context.Settings.FirstOrDefault(s => s.Key == nameof(InstanceName));
                 if (setting is null)
                 {
                     setting = new Setting { Key = nameof(InstanceName), Value = value };
-                    context.Settings.Add(setting);
+                    _context.Settings.Add(setting);
                 }
                 else
                 {
                     setting.Value = value;
                 }
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
@@ -48,23 +48,23 @@ namespace Core.Management.Repositories
         {
             get
             {
-                timeZone = !string.IsNullOrEmpty(timeZone) ? timeZone : context.Settings.FirstOrDefault(s => s.Key == nameof(TimeZone)).Value;
+                timeZone = !string.IsNullOrEmpty(timeZone) ? timeZone : _context.Settings.FirstOrDefault(s => s.Key == nameof(TimeZone)).Value;
                 return timeZone;
             }
             set
             {
                 timeZone = value;
-                Setting setting = context.Settings.FirstOrDefault(s => s.Key == nameof(TimeZone));
+                Setting setting = _context.Settings.FirstOrDefault(s => s.Key == nameof(TimeZone));
                 if (setting is null)
                 {
                     setting = new Setting { Key = nameof(TimeZone), Value = value };
-                    context.Settings.Add(setting);
+                    _context.Settings.Add(setting);
                 }
                 else
                 {
                     setting.Value = value;
                 }
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
@@ -73,23 +73,23 @@ namespace Core.Management.Repositories
         {
             get
             {
-                helpline = !string.IsNullOrEmpty(helpline) ? helpline : context.Settings.FirstOrDefault(a => a.Key == nameof(Helpline)).Value;
+                helpline = !string.IsNullOrEmpty(helpline) ? helpline : _context.Settings.FirstOrDefault(a => a.Key == nameof(Helpline)).Value;
                 return helpline;
             }
             set
             {
                 helpline = value;
-                Setting setting = context.Settings.FirstOrDefault(a => a.Key == nameof(Helpline));
+                Setting setting = _context.Settings.FirstOrDefault(a => a.Key == nameof(Helpline));
                 if (setting is null)
                 {
                     setting = new Setting { Key = nameof(Helpline), Value = value.ToString() };
-                    context.Settings.Add(setting);
+                    _context.Settings.Add(setting);
                 }
                 else
                 {
                     setting.Value = value;
                 }
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
@@ -98,26 +98,26 @@ namespace Core.Management.Repositories
         {
             get
             {
-                dateTimeFormat = !string.IsNullOrEmpty(dateTimeFormat) ? dateTimeFormat : context.Settings.FirstOrDefault(a => a.Key == nameof(DateTimeFormat))?.Value;
+                dateTimeFormat = !string.IsNullOrEmpty(dateTimeFormat) ? dateTimeFormat : _context.Settings.FirstOrDefault(a => a.Key == nameof(DateTimeFormat))?.Value;
                 return dateTimeFormat;
             }
             set
             {
                 dateTimeFormat = value;
 
-                Setting setting = context.Settings.FirstOrDefault(a => a.Key == nameof(DateTimeFormat));
+                Setting setting = _context.Settings.FirstOrDefault(a => a.Key == nameof(DateTimeFormat));
 
                 if (setting is null)
                 {
                     setting = new Setting { Key = nameof(DateTimeFormat), Value = value.ToString() };
-                    context.Settings.Add(setting);
+                    _context.Settings.Add(setting);
                 }
                 else
                 {
                     setting.Value = value;
                 }
 
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
@@ -126,25 +126,25 @@ namespace Core.Management.Repositories
         {
             get
             {
-                tokenLifetimeInMins ??= int.Parse(context.Settings.FirstOrDefault(a => a.Key == nameof(TokenLifetimeInMins)).Value);
+                tokenLifetimeInMins ??= int.Parse(_context.Settings.FirstOrDefault(a => a.Key == nameof(TokenLifetimeInMins)).Value);
                 return tokenLifetimeInMins.Value;
             }
             set
             {
                 tokenLifetimeInMins = value;
 
-                Setting setting = context.Settings.FirstOrDefault(a => a.Key == nameof(TokenLifetimeInMins));
+                Setting setting = _context.Settings.FirstOrDefault(a => a.Key == nameof(TokenLifetimeInMins));
 
                 if (setting is null)
                 {
                     setting = new Setting { Key = nameof(TokenLifetimeInMins), Value = value.ToString() };
-                    context.Settings.Add(setting);
+                    _context.Settings.Add(setting);
                 }
                 else
                 {
                     setting.Value = value.ToString();
                 }
-                context.SaveChanges();
+                _context.SaveChanges();
 
             }
         }
@@ -154,25 +154,25 @@ namespace Core.Management.Repositories
         {
             get
             {
-                codeLifetimeInMins ??= int.Parse(context.Settings.FirstOrDefault(a => a.Key == nameof(CodeLifetimeInMins)).Value);
+                codeLifetimeInMins ??= int.Parse(_context.Settings.FirstOrDefault(a => a.Key == nameof(CodeLifetimeInMins)).Value);
                 return codeLifetimeInMins.Value;
             }
             set
             {
                 codeLifetimeInMins = value;
 
-                Setting setting = context.Settings.FirstOrDefault(a => a.Key == nameof(CodeLifetimeInMins));
+                Setting setting = _context.Settings.FirstOrDefault(a => a.Key == nameof(CodeLifetimeInMins));
 
                 if (setting is null)
                 {
                     setting = new Setting { Key = nameof(CodeLifetimeInMins), Value = value.ToString() };
-                    context.Settings.Add(setting);
+                    _context.Settings.Add(setting);
                 }
                 else
                 {
                     setting.Value = value.ToString();
                 }
-                context.SaveChanges();
+                _context.SaveChanges();
 
             }
         }

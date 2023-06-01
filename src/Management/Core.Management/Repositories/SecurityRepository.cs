@@ -27,20 +27,20 @@ namespace Core.Management.Repositories
 {
     public class SecurityRepository : ISecurityRepository
     {        
-        private readonly IPNContext context;
-        private readonly IConnection connection;
-        private readonly IConfiguration configuration;
-        private readonly IConfigurationRepository configurationRepository;
+        private readonly IPNContext _context;
+        private readonly IConnection _connection;
+        private readonly IConfiguration _configuration;
+        private readonly IConfigurationRepository _configurationRepository;
 
         public SecurityRepository(IPNContext context,
             IConnection connection,
             IConfigurationRepository configurationRepository,
             IConfiguration configuration)
         {
-            this.context = context;
-            this.connection = connection;
-            this.configurationRepository = configurationRepository;
-            this.configuration = configuration;
+            _context = context;
+            _connection = connection;
+            _configurationRepository = configurationRepository;
+            _configuration = configuration;
         }
 
         public async Task<Client> CreateClient(string name, string contactEmail, string description)
@@ -53,22 +53,22 @@ namespace Core.Management.Repositories
                 Name = name.ToTitleCase(),
                 Secret = $"{Guid.NewGuid():N}".ToUpper(),
                 Role = Roles.User,
-                AccessTokenLifetimeInMins = configurationRepository.TokenLifetimeInMins,
-                AuthorizationCodeLifetimeInMins = configurationRepository.CodeLifetimeInMins,
+                AccessTokenLifetimeInMins = _configurationRepository.TokenLifetimeInMins,
+                AuthorizationCodeLifetimeInMins = _configurationRepository.CodeLifetimeInMins,
                 IsActive = false,
                 ContactEmail = contactEmail?.ToLower() ?? default,
                 Description = description ?? default
             };
 
-            await context.Clients.AddAsync(client).ConfigureAwait(false);
-            await context.SaveChangesAsync().ConfigureAwait(false);
+            await _context.Clients.AddAsync(client).ConfigureAwait(false);
+            await _context.SaveChangesAsync().ConfigureAwait(false);
 
             return client;
         }
 
         public async Task<Client> AuthenticateClient(Guid apiKey, string appSecret)
         {
-            Client client = await context.Clients.FindAsync(apiKey).ConfigureAwait(false);
+            Client client = await _context.Clients.FindAsync(apiKey).ConfigureAwait(false);
 
             if (!(client != null && client.IsActive && apiKey == client.ClientId && appSecret == client.Secret)) return null;
 
@@ -78,7 +78,7 @@ namespace Core.Management.Repositories
         public (string token, long expires) CreateAccessToken(Client client)
         {
             //security key for token validation
-            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Security:Key"]));
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Security:Key"]));
 
             //credentials for signing token
             SigningCredentials signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
@@ -88,7 +88,7 @@ namespace Core.Management.Repositories
             Roles role = client.Role;
             string subjectId = client.ClientId.ToString();
             DateTime expiryDate = baseDate.AddMinutes(client.AccessTokenLifetimeInMins);
-            string hashedJti = GenerateJti($"{Guid.NewGuid()}", configuration["Security:Key"]);
+            string hashedJti = GenerateJti($"{Guid.NewGuid()}", _configuration["Security:Key"]);
 
             //add claims
             List<Claim> claims = new List<Claim>
@@ -101,8 +101,8 @@ namespace Core.Management.Repositories
 
             //create token
             JwtSecurityToken jwtToken = new JwtSecurityToken(
-                issuer: configuration["Security:Issuer"],
-                audience: configuration["Security:Audience"],
+                issuer: _configuration["Security:Issuer"],
+                audience: _configuration["Security:Audience"],
                 signingCredentials: signingCredentials,
                 expires: expiryDate,
                 notBefore: baseDate,
@@ -123,7 +123,7 @@ namespace Core.Management.Repositories
 
             _ = Convert.FromBase64String(jti);
 
-            Client client = await context.Clients.FindAsync(cli).ConfigureAwait(false);
+            Client client = await _context.Clients.FindAsync(cli).ConfigureAwait(false);
 
             if (client is null) throw new Exception($"Invalid cli {cli}");
             if (client.Secret != appSecret) throw new Exception($"Invalid appSecret {appSecret}");
@@ -133,7 +133,7 @@ namespace Core.Management.Repositories
 
         public async Task<Client> AssignClientRole(Guid clientId, Roles role)
         {
-            Client client = await context.Clients.FindAsync(clientId).ConfigureAwait(false);
+            Client client = await _context.Clients.FindAsync(clientId).ConfigureAwait(false);
 
             if (client is null) throw new GenericException($"Client with id '{clientId}' could not be found", "AN001", HttpStatusCode.NotFound);
             if (client.Role == Roles.Root && role != Roles.Root) throw new GenericException("Root role cannot be assigned or revoked", "AN008", HttpStatusCode.Forbidden);
@@ -141,21 +141,21 @@ namespace Core.Management.Repositories
             client.Role = role;
             client.IsActive = true;
 
-            await context.SaveChangesAsync().ConfigureAwait(false);
+            await _context.SaveChangesAsync().ConfigureAwait(false);
             return client;
         }
 
-        public async Task<Client> GetClientById(Guid clientId) => await context.Clients.FindAsync(clientId).ConfigureAwait(false);
+        public async Task<Client> GetClientById(Guid clientId) => await _context.Clients.FindAsync(clientId).ConfigureAwait(false);
 
-        public async Task<List<Client>> GetClients() => await context.Clients.ToListAsync().ConfigureAwait(false);
+        public async Task<List<Client>> GetClients() => await _context.Clients.ToListAsync().ConfigureAwait(false);
 
         public async Task<Client> GetClientFromToken(string accessToken)
         {
             JwtSecurityToken jwtToken = new JwtSecurityTokenHandler().ReadToken(accessToken) as JwtSecurityToken;
             Guid cli = Guid.Parse(jwtToken.Claims.First(claim => claim.Type == "cli").Value);
 
-            string vSQL = Queries.GET_ENTITY_BY_COLUMN_NAME.Replace("{EntityName}", nameof(context.Clients)).Replace("{ColumnName}", nameof(Client.ClientId));
-            using SqlConnection sqlConnection = new SqlConnection(connection.ConnectionString);
+            string vSQL = Queries.GET_ENTITY_BY_COLUMN_NAME.Replace("{EntityName}", nameof(_context.Clients)).Replace("{ColumnName}", nameof(Client.ClientId));
+            using SqlConnection sqlConnection = new SqlConnection(_connection.ConnectionString);
             Client client = await sqlConnection.QueryFirstOrDefaultAsync<Client>(vSQL, new { value = cli }).ConfigureAwait(false);
 
             if (client is null) throw new Exception($"Invalid client {cli}");
@@ -172,7 +172,7 @@ namespace Core.Management.Repositories
             return Convert.ToBase64String(hmacshA256.ComputeHash(passwordBytes));
         }
 
-        public bool ValidateServerKey(string apiKey) => apiKey == configuration["Events:ConsumerKey"];      
+        public bool ValidateServerKey(string apiKey) => apiKey == _configuration["Events:ConsumerKey"];      
 
     }
 }

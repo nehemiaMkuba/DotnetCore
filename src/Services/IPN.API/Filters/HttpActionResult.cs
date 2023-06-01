@@ -5,20 +5,20 @@ namespace IPN.API.Filters
 {
     public class HttpActionResult : IActionResult
     {
-        private readonly object message;
-        private readonly int statusCode;
+        private readonly object _message;
+        private readonly int _statusCode;
 
         public HttpActionResult(object message, int statusCode)
         {
-            this.message = message;
-            this.statusCode = statusCode;
+            _message = message;
+            _statusCode = statusCode;
         }
 
         async Task IActionResult.ExecuteResultAsync(ActionContext context)
         {
-            ObjectResult objectResult = new ObjectResult(message)
+            ObjectResult objectResult = new ObjectResult(_message)
             {
-                StatusCode = statusCode
+                StatusCode = _statusCode
             };
 
             await objectResult.ExecuteResultAsync(context);

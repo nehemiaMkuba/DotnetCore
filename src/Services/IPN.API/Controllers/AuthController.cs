@@ -25,13 +25,13 @@ namespace IPN.API.Controllers
     [Route("v{version:apiVersion}/auth"), SwaggerOrder("A")]
     public class AuthController : ControllerBase
     {
-        private readonly IMapper mapper;
-        private readonly ISecurityRepository securityRepository;
+        private readonly IMapper _mapper;
+        private readonly ISecurityRepository _securityRepository;
 
         public AuthController(IMapper mapper, ISecurityRepository securityRepository)
         {
-            this.mapper = mapper;
-            this.securityRepository = securityRepository;
+            _mapper = mapper;
+            _securityRepository = securityRepository;
         }
 
         /// <summary>
@@ -46,9 +46,9 @@ namespace IPN.API.Controllers
         [Authorize(Policy = nameof(AuthPolicy.ElevatedRights))]
         public async Task<IActionResult> RegisterClient([FromBody, Required] ClientRequest request)
         {
-            Client client = await securityRepository.CreateClient(request.Name, request.ContactEmail, request.Description);
+            Client client = await _securityRepository.CreateClient(request.Name, request.ContactEmail, request.Description);
 
-            return Ok(new ResponseObject<MinifiedClientDto> { Data = new[] { mapper.Map<MinifiedClientDto>(client) } });
+            return Ok(new ResponseObject<MinifiedClientDto> { Data = new[] { _mapper.Map<MinifiedClientDto>(client) } });
         }
 
         /// <summary>
@@ -62,10 +62,10 @@ namespace IPN.API.Controllers
         [ProducesResponseType(typeof(ResponseObject<TokenDto>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> CreateToken([FromBody, Required] TokenRequest request)
         {
-            Client client = await securityRepository.AuthenticateClient(request.ApiKey, request.AppSecret);
+            Client client = await _securityRepository.AuthenticateClient(request.ApiKey, request.AppSecret);
             if (client is null) return Forbid();
 
-            (string token, long expires) = securityRepository.CreateAccessToken(client: client);
+            (string token, long expires) = _securityRepository.CreateAccessToken(client: client);
 
             return Ok(new ResponseObject<TokenDto> { Data = new[] { new TokenDto { AccessToken = token, Expires = expires, TokenType = "Bearer" } } });
         }
@@ -82,7 +82,7 @@ namespace IPN.API.Controllers
         public async Task<IActionResult> RefreshAccessToken([FromBody, Required] RefreshRequest request)
         {
             string bearerToken = await HttpContext.GetTokenAsync("access_token");
-            (string token, long expires) = await securityRepository.ExtendAccessTokenLifetime(bearerToken, request.AppSecret);
+            (string token, long expires) = await _securityRepository.ExtendAccessTokenLifetime(bearerToken, request.AppSecret);
 
             return Ok(new ResponseObject<TokenDto> { Data = new[] { new TokenDto { AccessToken = token, Expires = expires, TokenType = "Bearer" } } });
         }
@@ -99,8 +99,8 @@ namespace IPN.API.Controllers
         [Authorize(Policy = nameof(AuthPolicy.ElevatedRights))]
         public async Task<IActionResult> AssignPlusActivateClientRole([FromBody, Required] ActivationRequest request)
         {
-            Client client = await securityRepository.AssignClientRole(request.ApiKey, (Roles)request.Role);
-            return Ok(new ResponseObject<ClientDto> { Data = client is null ? Enumerable.Empty<ClientDto>() : new[] { mapper.Map<ClientDto>(client) } });
+            Client client = await _securityRepository.AssignClientRole(request.ApiKey, (Roles)request.Role);
+            return Ok(new ResponseObject<ClientDto> { Data = client is null ? Enumerable.Empty<ClientDto>() : new[] { _mapper.Map<ClientDto>(client) } });
         }
 
         /// <summary>
@@ -115,8 +115,8 @@ namespace IPN.API.Controllers
         [Authorize(Policy = nameof(AuthPolicy.ElevatedRights))]
         public async Task<IActionResult> GetClientById([FromRoute, Required] Guid id)
         {
-            Client client = await securityRepository.GetClientById(id);
-            return Ok(new ResponseObject<ClientDto> { Data = client is null ? Enumerable.Empty<ClientDto>() : new[] { mapper.Map<ClientDto>(client) } });
+            Client client = await _securityRepository.GetClientById(id);
+            return Ok(new ResponseObject<ClientDto> { Data = client is null ? Enumerable.Empty<ClientDto>() : new[] { _mapper.Map<ClientDto>(client) } });
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace IPN.API.Controllers
         [Authorize(Roles = nameof(Roles.Root))]
         public async Task<IActionResult> GetClients()
         {
-            return Ok(new ResponseObject<ClientDto> { Data = mapper.Map<List<ClientDto>>(await securityRepository.GetClients()) });
+            return Ok(new ResponseObject<ClientDto> { Data = _mapper.Map<List<ClientDto>>(await _securityRepository.GetClients()) });
         }
     }
 }

@@ -46,10 +46,10 @@ namespace IPN.API
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public IConfiguration _configuration { get; }
 
         /// <summary>
         /// This method gets called by the runtime. Use this method to add services to the container.
@@ -59,16 +59,16 @@ namespace IPN.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHttpClient();
-            services.AddAuthentication(Configuration);
-            services.AddApplication(Configuration);
-            services.AddInfrastructure(Configuration);
-            services.AddCustomHangfire(Configuration);
+            services.AddAuthentication(_configuration);
+            services.AddApplication(_configuration);
+            services.AddInfrastructure(_configuration);
+            services.AddCustomHangfire(_configuration);
             services.AddAutoMapper(cfg => { cfg.AllowNullDestinationValues = true; cfg.AllowNullCollections = false; },   Assembly.GetAssembly(GetType()));
             services.AddCustomControllers();
             services.AddVersioning();
             services.AddSwaggerDocumentation();
-            services.AddCustomOptions(Configuration);
-            services.AddAmazonSQSClient(Configuration);
+            services.AddCustomOptions(_configuration);
+            services.AddAmazonSQSClient(_configuration);
         }
 
         /// <summary>
@@ -101,11 +101,11 @@ namespace IPN.API
 
             app.UseHangfireDashboard("/hangfire", new DashboardOptions
             {
-                StatsPollingInterval = int.Parse(Configuration["Hangfire:StatsPollingInMs"]),//refresh dashboard every minute - default 2000
-                IsReadOnlyFunc = (DashboardContext context) => bool.Parse(Configuration["Hangfire:IsReadOnlyFunc"]),
+                StatsPollingInterval = int.Parse(_configuration["Hangfire:StatsPollingInMs"]),//refresh dashboard every minute - default 2000
+                IsReadOnlyFunc = (DashboardContext context) => bool.Parse(_configuration["Hangfire:IsReadOnlyFunc"]),
                 AppPath = default, // no back link - back to site:baseurl
                 Authorization = new[] { new BasicAuthAuthorizationFilter(new BasicAuthAuthorizationFilterOptions { RequireSsl = false, SslRedirect = false, LoginCaseSensitive = true,
-                    Users = new[] { new BasicAuthAuthorizationUser { Login = "hangfire", PasswordClear = Configuration["Hangfire:HangfireDash"] } } }) }
+                    Users = new[] { new BasicAuthAuthorizationUser { Login = "hangfire", PasswordClear = _configuration["Hangfire:HangfireDash"] } } }) }
             });
 
             app.UseHangfireServer();
