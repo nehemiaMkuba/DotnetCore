@@ -24,6 +24,7 @@ using Hangfire.Dashboard;
 using Hangfire.SqlServer;
 using Hangfire.Dashboard.BasicAuthorization;
 
+using Quartz;
 using Amazon.SQS;
 using Amazon.Runtime;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -31,15 +32,12 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 using Core.Domain;
 using Core.Management;
+using IPN.API.Filters;
 using Core.Domain.Enums;
+using IPN.API.Attributes;
 using Core.Domain.Entities;
 using Core.Management.Common;
 using IPN.API.Models.Common;
-using IPN.API.Models.Filters;
-using IPN.API.Models.Attribute;
-using Core.Management.Infrastructure.IntegrationEvents.EventHandling;
-using Quartz;
-using IPN.API.Jobs;
 
 [assembly: ApiController]
 namespace IPN.API
@@ -62,7 +60,7 @@ namespace IPN.API
         {
             services.AddHttpClient();
             services.AddAuthentication(Configuration);
-            services.AddApplication();
+            services.AddApplication(Configuration);
             services.AddInfrastructure(Configuration);
             services.AddCustomHangfire(Configuration);
             services.AddAutoMapper(cfg => { cfg.AllowNullDestinationValues = true; cfg.AllowNullCollections = false; },   Assembly.GetAssembly(GetType()));

@@ -15,7 +15,11 @@ namespace IPN.API.Models.Mappings
 
         private void ConfigureMappings()
         {
-            
+            CreateMap<Client, MinifiedClientDto>()
+            .ForMember(destinationMember => destinationMember.ApiKey, options => options.MapFrom(src => src.ClientId));
+            CreateMap<Client, ClientDto>();
+
+
         }
 
     }

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IPN.API.Models.Filters
+namespace IPN.API.Filters
 {
     public class HttpActionResult : IActionResult
     {

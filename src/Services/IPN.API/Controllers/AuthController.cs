@@ -16,7 +16,7 @@ using Core.Domain.Enums;
 using Core.Domain.Entities;
 using IPN.API.Models.Common;
 using Core.Management.Interfaces;
-using IPN.API.Models.Attribute;
+using IPN.API.Attributes;
 using IPN.API.Models.DTOs.Requests;
 using IPN.API.Models.DTOs.Responses;
 

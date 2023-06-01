@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
+﻿using System.Linq;
+
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Linq;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
-namespace IPN.API.Models.Filters
+namespace IPN.API.Filters
 { 
     /// <summary>
     /// Represents the Swagger/Swashbuckle operation filter used to document the implicit API version parameter.

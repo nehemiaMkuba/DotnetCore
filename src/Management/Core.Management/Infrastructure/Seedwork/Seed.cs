@@ -43,13 +43,13 @@ namespace Core.Management.Infrastructure.Seedwork
         {
             using SqlConnection sqlConnection = new SqlConnection(connection.ConnectionString);
 
-            int max = sqlConnection.ExecuteScalar<int?>("SELECT MAX(SettingId) FROM gospel.Settings") ?? 0;
-            sqlConnection.Execute($"ALTER SEQUENCE [gospel].[Setting_HiLo] RESTART WITH {max += 1} INCREMENT BY 1");
+            int max = sqlConnection.ExecuteScalar<int?>("SELECT MAX(SettingId) FROM IPN.Settings") ?? 0;
+            sqlConnection.Execute($"ALTER SEQUENCE [IPN].[Setting_HiLo] RESTART WITH {max += 1} INCREMENT BY 1");
 
-            max = sqlConnection.ExecuteScalar<int?>("SELECT MAX(NotificationIPNId) FROM gospel.NotificationIPNs") ?? 0;
-            sqlConnection.Execute($"ALTER SEQUENCE gospel.NotificationIPN_HiLo RESTART WITH {max += 1} INCREMENT BY 1");
+            max = sqlConnection.ExecuteScalar<int?>("SELECT MAX(NotificationIPNId) FROM IPN.NotificationIPNs") ?? 0;
+            sqlConnection.Execute($"ALTER SEQUENCE IPN.NotificationIPN_HiLo RESTART WITH {max += 1} INCREMENT BY 1");
 
-            sqlConnection.Execute("ALTER SEQUENCE gospel.Language_HiLo INCREMENT BY 1");
+            sqlConnection.Execute("ALTER SEQUENCE IPN.Language_HiLo INCREMENT BY 1");
         }
     }
 }

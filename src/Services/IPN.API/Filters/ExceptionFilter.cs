@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Core.Domain.Exceptions;
 using IPN.API.Models.Common;
 
-namespace IPN.API.Models.Filters
+namespace IPN.API.Filters
 {
     public class ExceptionFilter : IExceptionFilter
     {

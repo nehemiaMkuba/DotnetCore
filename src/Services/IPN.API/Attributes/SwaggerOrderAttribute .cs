@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IPN.API.Models.Attribute
+namespace IPN.API.Attributes
 {
     /// <summary>
     /// Annotates a controller with a Swagger sorting order that is used when generating the Swagger documentation to

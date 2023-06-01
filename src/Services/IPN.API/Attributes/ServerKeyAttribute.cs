@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using IPN.API.Models.Common;
 using Core.Management.Interfaces;
 
-namespace IPN.API.Models.Attribute
+namespace IPN.API.Attributes
 {
     [AttributeUsage(validOn: AttributeTargets.Class | AttributeTargets.Method)]
     public class ServerKeyAttribute : System.Attribute, IAsyncActionFilter

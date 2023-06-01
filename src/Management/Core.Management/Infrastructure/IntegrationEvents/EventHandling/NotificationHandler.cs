@@ -24,9 +24,6 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
 {
     public class NotificationHandler : INotificationHandler
     {
-        public async Task Handle() { }
-
-        /*
         private readonly HttpClient client;
         private readonly IConnection connection;
         private readonly NotificationSetting setting;
@@ -133,11 +130,11 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
 
             foreach (Notification notification in notifications)
             {
-                switch (notification.InformationModeId)
+                switch (notification.InformationMode)
                 {
-                    case (int)InformationModes.None:
+                    case InformationModes.None:
                         continue;
-                    case (int)InformationModes.Sms:
+                    case InformationModes.Sms:
                         {
                             (bool success, string externalId, string message) = await SendSms(notification).ConfigureAwait(false);
                             if (success) successful.Add((notification.NotificationId, externalId, message));
@@ -145,7 +142,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
 
                             continue;
                         }
-                    case (int)InformationModes.Email:
+                    case InformationModes.Email:
                         {
                             (bool success, string externalId, string message) = string.IsNullOrEmpty(notification.Email) ? await SendSms(notification).ConfigureAwait(false) : await SendEmail(notification).ConfigureAwait(false);
                             if (success) successful.Add((notification.NotificationId, externalId, message));
@@ -153,7 +150,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
 
                             continue;
                         }
-                    case (int)InformationModes.SmsAndEmail:
+                    case InformationModes.SmsAndEmail:
                         {
                             if (string.IsNullOrEmpty(notification.Email))
                             {
@@ -192,7 +189,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
                     message = notification.TextBody,
                     senderID = setting.SenderId,
                     priority = notification.Priority,
-                    product = "ntsa",
+                    product = "ipn",
                     notificationURL = setting.NotificationUrl,
                     externalId = notification.NotificationId.ToString()
                 });
@@ -234,7 +231,7 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
                     message = notification.TextBody,
                     subject = notification.Subject,
                     priority = notification.Priority,
-                    product = "ntsa",
+                    product = "ipn",
                     notificationURL = setting.NotificationUrl,
                     externalId = notification.NotificationId.ToString()
                 });
@@ -263,6 +260,6 @@ namespace Core.Management.Infrastructure.IntegrationEvents.EventHandling
             }
         }       
 
-        */
+        
     }
 }
